@@ -6,5 +6,6 @@ from django.conf.urls.static import static
 app_name = 'webapp'
 
 urlpatterns = [
-    path('index', views.MetroEventsIndexView.as_view(), name='metro_event_view'),
+    path('', views.MetroEventsIndexView.as_view(), name='metro_event_view'),
+    path('home', views.MetroEventsHomeView.as_view(), name='metro_event_home_view'),
 ]

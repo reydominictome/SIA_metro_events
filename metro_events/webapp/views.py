@@ -12,6 +12,9 @@ from webapp.models import User
 
 class MetroEventsIndexView(View):
     def get(self, request):
-        #data = Customer.objects.all()
-        return render(request, 'webapp/customer_dashboard.html')
+        return render(request, 'webapp/Users.html')
+
+class MetroEventsHomeView(View):
+    def get(self, request):
+        return render(request, 'webapp/Home.html')        
 

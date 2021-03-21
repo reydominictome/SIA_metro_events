@@ -10,6 +10,8 @@ var move6 = document.getElementById("Group_69");
 var gotosignupbtn = document.getElementById("goto-sign-up");
 var gotosigninbtn = document.getElementById("goto-sign-in");
 
+var myVar;
+
 gotosignupbtn.onclick = function() {
  	circle.style.left = "1100px";
  	move1.style.left = "-900px";
@@ -32,3 +34,12 @@ gotosigninbtn.onclick = function() {
  	move6.style.left = "2200px";
 }	
 
+function myFunction() {
+  myVar = setTimeout(showPage, 1000);
+}
+
+function showPage() {
+  document.getElementById("loader").style.display = "none";
+  document.getElementById("myDiv").style.display = "block";
+
+}

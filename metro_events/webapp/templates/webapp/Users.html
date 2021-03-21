@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-	{% load static %}
+	{$ load static %}
 <meta charset="utf-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>User</title>
 <link rel="stylesheet" type="text/css" id="applicationStylesheet" href="{% static 'css/Users.css' %}"/>
+<link rel="stylesheet" type="text/css" id="applicationStylesheet" href="{% static 'css/Users.css' %}"/>
+<link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
+<link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
 <script id="applicationScript" type="text/javascript" src="{% static 'js/Users.js' %}"></script>
 </head>
-<body>
+<body onload="myFunction()">
+	<div id="loader"></div>
 <div id="User">
 	<svg class="Ellipse_34" id="move_circle">
 		<ellipse id="Ellipse_34" rx="896" ry="896" cx="896" cy="896">

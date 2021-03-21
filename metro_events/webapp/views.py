@@ -13,6 +13,10 @@ from .models import *
 
 # Create your views here.
 
+def Mbox(title, text, style):
+    sty=int(style)+4096
+    return ctypes.windll.user32.MessageBoxW(0, title, text, sty)
+
 class MetroEventsIndexView(View):
     def get(self, request):
         return render(request, 'webapp/Users.html')

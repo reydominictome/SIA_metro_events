@@ -9,3 +9,8 @@ class RegistrationForm(forms.ModelForm):
         model = User
         fields = ('first_name','middle_name','last_name','username','email','password')
 
+class RequestForm(forms.ModelForm):
+
+	class Meta:
+		model = Request
+		fields = ('description','request_type')

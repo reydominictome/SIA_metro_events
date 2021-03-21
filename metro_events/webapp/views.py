@@ -75,9 +75,6 @@ class MetroEventsIndexView(View):
                 user = User.objects.all()    
 
                 for u in user:
-                    print(u.username) 
-
-                for u in user:
                     auth = check_password(password,u.password)
 
                     if auth == True and u.username == username:

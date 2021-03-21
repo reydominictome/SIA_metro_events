@@ -9,8 +9,3 @@ class RegistrationForm(forms.ModelForm):
         model = User
         fields = ('first_name','middle_name','last_name','username','email','password')
 
-class LoginForm(forms.ModelForm):
-
-   class Meta:
-        model = User
-        fields = ('username','password')

@@ -7,7 +7,8 @@ from django.db.models import Q
 from django.http import HttpResponse, Http404
 from .forms import *
 from datetime import datetime
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth import authenticate, login, logout
 from .models import *
 
 # Create your views here.
@@ -48,56 +49,48 @@ class MetroEventsIndexView(View):
                                 lastname = data.get("last_name") 
 
                                 form = User(first_name = firstname, middle_name = midname, last_name = lastname, 
-                                    email = email, password = password)   
+                                    email = email, username = username, password = password)   
                                 form.save()
                                 form.password = make_password(form.password)
                                 form.save()
 
                                 messages.success(request, '<b>' + username + '</b> was registered successfully!')
                                 return redirect('webapp:landing')
-                            
-                        print("username")    
+                                
                         messages.success(request, '<b>' + username + '</b> is in use!')
                         return redirect('webapp:home')
 
-                    print("Email")
                     messages.success(request, '<b>' + email + '</b> is in use!')
                     return redirect('webapp:home')
 
-                print(password)
-                print(cpassword)
                 messages.success(request, 'Please make sure that the passwords are the same')
                 return redirect('webapp:home')
 
-            else:
-
-                form = LoginForm(request.POST)   
+            elif "btnLogin" in request.POST:   
                 data = request.POST
-                user = User.objects.all()
 
-                username = data.get("username")
-                password = data.get("password")
+                username = data.get("user_username")
+                password = data.get("user_password")
+
+                user = User.objects.all()    
 
                 for u in user:
-                    if(u.username == username and u.password == password):
-                        if(form.is_valid()):
-                            username = data.get("username")
-                            password = data.get("password")
+                    print(u.username) 
 
-                            form = User(username = username, password = password)
-                            form.save()
-
-                            messages.success(request, '<b>'+username+'</b> logged in successfully!')
-                            return redirect('webapp:Home')
-
-                    else:
-                        messages.error(request,'email address or password is incorrect')
-                        return render(request, 'webapp/Users.html', {'form':form})
+                for u in user:
+                    auth = check_password(password,u.password)
+                    print(auth)
+                    if auth == True and u.username == username: 
+                        print(u)
+                        return render(request, 'webapp/Home.html', {"user":u})
+                        
+                print("what")
+                messages.error(request,'username or password is incorrect')
+                return redirect('webapp:landing')
                 
         else:
-            print("Rerquest")
             messages.success(request, 'Something went terribly wrong')
-            return redirect('webapp:home')
+            return redirect('webapp:landing')
 
 class MetroEventsHomeView(View):
     def get(self, request):

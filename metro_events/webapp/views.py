@@ -79,12 +79,10 @@ class MetroEventsIndexView(View):
 
                 for u in user:
                     auth = check_password(password,u.password)
-                    print(auth)
-                    if auth == True and u.username == username: 
-                        print(u)
-                        return render(request, 'webapp/Home.html', {"user":u})
+
+                    if auth == True and u.username == username:
+                        return render(request, 'webapp/Home.html', {"logged_user":u})
                         
-                print("what")
                 messages.error(request,'username or password is incorrect')
                 return redirect('webapp:landing')
                 

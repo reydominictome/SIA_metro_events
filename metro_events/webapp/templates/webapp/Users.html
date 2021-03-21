@@ -6,10 +6,14 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>User</title>
-<link rel="stylesheet" type="text/css" id="applicationStylesheet" href="{% static 'css/user.css' %}"/>
-<script id="applicationScript" type="text/javascript" src="{% static 'js/Users.js' %}"></script>
+<link rel="stylesheet" type="text/css" id="applicationStylesheet" href="{% static 'css/landing.css' %}"/>
+<link rel="stylesheet" type="text/css" id="applicationStylesheet" href="{% static 'css/landing.css' %}"/>
+<link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
+<link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+<script id="applicationScript" type="text/javascript" src="{% static 'js/landing.js' %}"></script>
 </head>
-<body>
+<body onload="myFunction()">
+	<div id="loader"></div>
 <div id="User">
 	<svg class="Ellipse_34" id="move_circle">
 		<ellipse id="Ellipse_34" rx="896" ry="896" cx="896" cy="896">
@@ -554,6 +558,6 @@
 		</div>
 	</div>
 </div>
-<script type="text/javascript" src="{% static 'js/UsersAnimate.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/landing_animate.js' %}"></script>
 </body>
 </html>

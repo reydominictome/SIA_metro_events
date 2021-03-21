@@ -1,3 +1,4 @@
+import ctypes
 import math
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import View, TemplateView
@@ -68,9 +69,31 @@ class MetroEventsIndexView(View):
                 messages.success(request, 'Please make sure that the passwords are the same')
                 return redirect('webapp:home')
 
-            print("bUTTON")
-            messages.success(request, 'Something went terribly wrong')
-            return redirect('webapp:home')
+            else:
+
+                form = LoginForm(request.POST)   
+                data = request.POST
+                user = User.objects.all()
+
+                username = data.get("username")
+                password = data.get("password")
+
+                for u in user:
+                    if(u.username == username and u.password == password):
+                        if(form.is_valid()):
+                            username = data.get("username")
+                            password = data.get("password")
+
+                            form = User(username = username, password = password)
+                            form.save()
+
+                            messages.success(request, '<b>'+username+'</b> logged in successfully!')
+                            return redirect('webapp:Home')
+
+                    else:
+                        messages.error(request,'email address or password is incorrect')
+                        return render(request, 'webapp/Users.html', {'form':form})
+                
         else:
             print("Rerquest")
             messages.success(request, 'Something went terribly wrong')

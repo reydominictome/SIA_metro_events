@@ -235,6 +235,7 @@
 			<div id="Sign_Up">
 				<span>Sign Up</span>
 			</div>
+
 			<!-- Log In Form -->
 
 			<form>
@@ -262,7 +263,9 @@
 			</form>
 
 			<!-- Sign Up Form -->
+
 			<form>
+				{% csrf_token %}
 				<div id="signup_fname">
 						<svg class="Rectangle_78_cp">
 							<rect id="Rectangle_78_cp" rx="7" ry="7" x="0" y="0" width="391" height="50">

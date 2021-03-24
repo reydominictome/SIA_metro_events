@@ -24,7 +24,7 @@ def prepareAdminNotifications(request_type):
     if request_type == 'request_to_be_an_administrator':
         notif_title = "Request to be an administrator"
         notif_content = "A user requests to be an administrator."
-        notif_type = "Request"
+        notif_type = "Request to be an Administrator"
 
         notif = Notification(notif_title = notif_title, notif_content = notif_content, notif_type = notif_type)
         notif.save()
@@ -35,7 +35,7 @@ def prepareAdminNotifications(request_type):
     elif request_type == 'request_to_be_an_organizer':
         notif_title = "Request to be an organizer"
         notif_content = "A user requests to be an organizer"
-        notif_type = "Request"
+        notif_type = "Request to be an Organizer"
 
         notif = Notification(notif_title = notif_title, notif_content = notif_content, notif_type = notif_type)
         notif.save()
@@ -45,9 +45,8 @@ def prepareAdminNotifications(request_type):
             user.notification.add(notif.id)
 
 def requestNotification(request_id, req_type):
-    request = Request.objects.get(pk = request_id)
-
     if req_type == 'administrator':
+        request = Request.objects.get(pk = request_id)
         if request.isConfirmed == 1:
             notif_title = "Request Acceptance"
             notif_content = "Your request to be an administrator was accepted."
@@ -69,6 +68,7 @@ def requestNotification(request_id, req_type):
             user = User.objects.get(pk = request.sender.id)
             user.notification.add(notif.id)
     elif req_type == 'organizer':
+        request = Request.objects.get(pk = request_id)
         if request.isConfirmed == 1:
             notif_title = "Request Acceptance"
             notif_content = "Your request to be an event organizer was accepted."
@@ -89,10 +89,60 @@ def requestNotification(request_id, req_type):
     
             user = User.objects.get(pk = request.sender.id)
             user.notification.add(notif.id)
+    elif req_type == 'Request to join event':
+        request = EventRequest.objects.get(pk = request_id)
+        if request.isConfirmed == 1:
+            notif_title = "Request Acceptance"
+            notif_content = "Your request join the event " + request.event.event_name + " was accepted."
+            notif_type = "Organizer's Response"
+
+            notif = Notification(notif_title = notif_title, notif_content = notif_content, notif_type = notif_type)
+            notif.save()
+    
+            user = User.objects.get(pk = request.sender.id)
+            user.notification.add(notif.id)
+        elif request.isConfirmed == 0:
+            notif_title = "Request was Declined"
+            notif_content = "Your request join the event " + request.event.event_name + " was unfortunately declined."
+            notif_type = "Organizer's Response"
+
+            notif = Notification(notif_title = notif_title, notif_content = notif_content, notif_type = notif_type)
+            notif.save()
+    
+            user = User.objects.get(pk = request.sender.id)
+            user.notification.add(notif.id)
+
+def newEventNotification(event_id):
+    event = Event.objects.get(pk = event_id)
+    user = User.objects.all()
+
+    notif_title =  event.event_name
+    notif_content = "A new event has been created. If you are interested go and check it out."
+    notif_type = "New Event Announcement"
+
+    notif = Notification(notif_title = notif_title, notif_content = notif_content, notif_type = notif_type)
+    notif.save()
+
+    for u in user:
+        u.notification.add(notif.id)
+
+def notifyOrganizer(organizer, event_id):
+    event = Event.objects.get(pk = event_id)
+
+    notif_title =  event.event_name
+    notif_content = "A user is interested in joining your event."
+    notif_type = "Request to Join Event"
+
+    notif = Notification(notif_title = notif_title, notif_content = notif_content, notif_type = notif_type)
+    notif.save()
+
+    organizer.organizer.notification.add(notif)
 
 
 class MetroEventsIndexView(View):
     def get(self, request):
+        if request.session.has_key('user'):
+            del request.session['user']
         return render(request, 'webapp/Users.html')
     
     def post(self, request):
@@ -162,12 +212,14 @@ class MetroEventsIndexView(View):
                         isOrganizer = 0
 
                         for a in admin:
-                            if u.id == a.admin:
+                            if u.id == a.admin.id:
                                 isAdmin = 1
+                                break
                         
                         for o in organizer:
-                            if u.id == o.organizer:
+                            if u.id == o.organizer.id:
                                 isOrganizer = 1
+                                break
 
                         context = {
                             'id': u.id,
@@ -177,11 +229,15 @@ class MetroEventsIndexView(View):
                             'username': u.username,
                             'email': u.email,
                             'isAdmin': isAdmin,
-                            'isOrganizer': isOrganizer
+                            'isOrganizer': isOrganizer,
                         }
+
+                        print(isOrganizer)
+
                         request.session['user'] = context
                         return redirect('webapp:home')
                         
+                print("cannot find btnLogin")
                 messages.error(request,'username or password is incorrect')
                 return redirect('webapp:landing')
                 
@@ -191,7 +247,28 @@ class MetroEventsIndexView(View):
 
 class MetroEventsHomeView(View):
     def get(self, request):
-        return render(request, 'webapp/Home.html')
+        if request.session.has_key('user'):
+            user_id = int(request.session['user']['id'])
+            user = User.objects.get(pk = user_id)
+
+            notifs = user.notification.all()
+            notifs_titles = []
+            notifs_dates = []
+            notifs_contents = []
+            notifs_types = []
+
+            for n in notifs:
+                notifs_titles.append(n.notif_title)
+                notifs_dates.append(n.notif_date)
+                notifs_contents.append(n.notif_content)
+                notifs_types.append(n.notif_type)
+
+            return render(request, 'webapp/Home.html', {"notifs_titles":notifs_titles,
+                                                        "notifs_dates":notifs_dates, 
+                                                        "notifs_contents":notifs_contents,
+                                                        "notifs_types": notifs_types})
+
+        return redirect('webapp:landing')
 
     def post(self, request):
         if request.session.has_key('user'):
@@ -211,14 +288,15 @@ class MetroEventsHomeView(View):
                     for r in requests:
                         if r.sender == sender:
                             if r.isDeleted == 0:
-                                if r.request_type == request_type:
-                                    count = 1
+                                if r.isPending == 1:
+                                    if r.isConfirmed == 1:
+                                        if r.request_type == request_type:
+                                            count = 1
                     if count == 0: 
                         form = Request(description = description, request_type = request_type, sender = sender)
                         form.save()
 
                         prepareAdminNotifications(request_type)
-                        print("eut")
                         return redirect('webapp:home')
 
                     print("redundant req")
@@ -232,16 +310,139 @@ class MetroEventsHomeView(View):
 
 class MetroEventsEventsView(View):
     def get(self, request):
-        return render(request, 'webapp/Home.html')
+        if request.session.has_key('user'):
+            events = Event.objects.all()
+
+            return render(request, 'webapp/EventList.html', {"events":events})
+
+        return redirect('webapp:landing')
+    def post(self, request):
+        if request.session.has_key('user'):
+            if request.method == 'POST':
+                if 'btnJoin' in request.POST:
+                    data = request.POST
+                    user_id = data.get("user_id")
+                    event_id = data.get("event_id")
+
+                    event = Event.objects.get(pk = event_id)
+                    for u in event.organizer.all():
+                        organizer = u
+
+                    user = User.objects.get(pk = user_id)
+
+                    description = "I want to join your event " + event.event_name
+                    request_type = "Request to join event"
+                    sender = user
+
+                    req = EventRequest.objects.create(event = event)
+                    req.save()
+                    update = EventRequest.objects.filter(id = req.id).update(description=description, 
+                                                                    request_type = request_type, sender = sender)
+                    organizer.request.add(req)
+
+                    notifyOrganizer(organizer, event_id)
+
+                    return redirect('webapp:events')
+                elif 'btnUpvote' in request.POST:
+                    data = request.POST
+                    event_id = data.get("event_id")
+
+                    update = Event.objects.get(pk = event_id)
+                    update.number_of_upvotes = update.number_of_upvotes + 1
+                    update.save()
+
+                    return redirect('webapp:events')
+                elif 'btnReview' in request.POST:
+                    data = request.POST
+                    event_id = data.get("event_id")
+                    return render(request, 'webapp/ReviewEvent.html', {"event_id":event_id})
+                elif 'btnCreateReview' in request.POST:
+                    form = ReviewCreationForm(request.POST)
+                    data = request.POST
+
+                    if form.is_valid():
+                        title = data.get("title")
+                        content = data.get("content")
+                        rating = data.get("rating")
+                        event_id = data.get("event_id")
+                        user_id = data.get("user_id")
+
+                        user = User.objects.get(pk = user_id)
+                        event = Event.objects.get(pk = event_id)
+
+                        form = Review(title = title, content = content, rating = rating)
+                        form.save()
+                        update = Review.objects.filter(pk = form.id).update(author = user)
+
+                        event.reviews.add(form)
+
+                        return redirect('webapp:events')
+                    return redirect('webapp:home')
+                elif 'btnReviews' in request.POST:
+                    data = request.POST
+                    event_id = data.get("event_id")
+                    event = Event.objects.get(pk = event_id)
+                    return render(request, 'webapp/ReviewList.html', {"event":event})
+                elif 'btnParticipants' in request.POST:
+                    data = request.POST
+                    event_id = data.get("event_id")
+                    event = Event.objects.get(pk = event_id)
+                    return render(request, 'webapp/ParticipantsList.html', {"event":event})
+                    
+        return redirect('webapp:landing')
+
+class MetroEventsEventsRegistrationView(View):
+    def get(self, request):
+        if request.session.has_key('user'):
+
+            return render(request, 'webapp/RegisterEvent.html')
+        return redirect('webapp/landing')
+    
+    def post(self, request):
+        if request.session.has_key('user'):
+            if request.method == 'POST':
+                if 'btnCreate' in request.POST:
+                    form = EventCreationForm(request.POST)
+                    data = request.POST
+
+                    if form.is_valid():
+                        organizer = data.get("organizer")
+                        event_name = data.get("event_name")
+                        event_description = data.get("event_description")
+                        event_type = data.get("event_type")
+                        event_fee = data.get("event_fee")
+                        start_date = data.get("start_date")
+                        end_date = data.get("end_date")
+                        start_time = data.get("start_time")
+                        end_time = data.get("end_time")
+
+                        user = User.objects.get(pk = organizer)
+                        event_organizer = Organizer.objects.get(organizer = user)
+                        form = Event(event_name = event_name,
+                                    event_description = event_description,
+                                    event_type = event_type,
+                                    event_fee = event_fee,
+                                    start_date = start_date,
+                                    end_date = end_date, 
+                                    start_time = start_time,
+                                    end_time = end_time)
+                        form.save()
+                        events = Event.objects.get(pk = form.id)
+                        event_organizer.events.add(events)
+
+                        event_id = Event.objects.get(pk = form.id).pk
+
+                        newEventNotification(event_id)
+
+                        return redirect('webapp:organizer_requests')
+        return redirect('webapp:landing')
 
 class MetroEventsAdministratorView(View):
     def get(self, request):
         if request.session.has_key('user'):
             requests = Request.objects.all()
-            events = Event.objects.all()
-            users = User.objects.all()
 
-            return render(request, 'webapp/movie_dashboard.html', {"users":users, "requests":requests, "events":events})
+            return render(request, 'webapp/Request.html', {"requests":requests})
 
         return redirect('webapp:landing')
 
@@ -252,6 +453,8 @@ class MetroEventsAdministratorView(View):
                     request_id = request.POST.get("request_id")
 
                     update = Request.objects.filter(id = request_id).update(isDeleted=True)
+                    update = Request.objects.filter(id = request_id).update(isPending=False)
+                    print(update)
 
                     return redirect('webapp:administrator')
                 elif 'btnAccept' in request.POST:
@@ -280,9 +483,60 @@ class MetroEventsAdministratorView(View):
                 elif 'btnDecline' in request.POST:
                     request_id = request.POST.get("request_id")
 
+                    request = Request.objects.get(pk = request_id)
                     update = Request.objects.filter(id = request_id).update(isPending=False)
+                    update = Request.objects.filter(id = request_id).update(isConfirmed=False)
 
-                    requestNotification(request_id)
+                    if request.request_type == 'request_to_be_an_administrator':
+                        req_type = "administrator"
+                    elif request.request_type == 'request_to_be_an_organizer':
+                        req_type = "organizer"
+
+                    requestNotification(request_id, req_type)
+
+                    return redirect('webapp:administrator')
+                return redirect('webapp:landing')
+            return redirect('webapp:landing')
+        return redirect('webapp:landing')
+    
+class MetroEventsAdministratorUsersView(View):
+    def get(self, request):
+        if request.session.has_key('user'):
+            users = User.objects.all()
+
+            return render(request, 'webapp/AllUsers.html', {"user":users})
+
+        return redirect('webapp:landing')
+
+    def post(self, request):
+        if request.session.has_key('user'):
+            if request.method == 'POST':
+                if 'btnDelete' in request.POST:
+                    request_id = request.POST.get("request_id")
+
+                    update = Request.objects.filter(id = request_id).update(isDeleted=True)
+
+                    return redirect('webapp:administrator')
+                return redirect('webapp:landing')
+            return redirect('webapp:landing')
+        return redirect('webapp:landing')
+    
+class MetroEventsAdministratorEventsView(View):
+    def get(self, request):
+        if request.session.has_key('user'):
+            events = Event.objects.all()
+
+            return render(request, 'webapp/AllEvents.html', {"events":events})
+
+        return redirect('webapp:landing')
+
+    def post(self, request):
+        if request.session.has_key('user'):
+            if request.method == 'POST':
+                if 'btnDelete' in request.POST:
+                    request_id = request.POST.get("request_id")
+
+                    update = Request.objects.filter(id = request_id).update(isDeleted=True)
 
                     return redirect('webapp:administrator')
                 return redirect('webapp:landing')
@@ -292,4 +546,113 @@ class MetroEventsAdministratorView(View):
 
 class MetroEventsOrganizerView(View):
     def get(self, request):
-        return render(request, 'webapp/Home.html')                
+        if request.session.has_key('user'):
+            user_id = int(request.session['user']['id'])
+            user = User.objects.get(pk = user_id)
+
+            for u in user.user_organizer.all():
+                organizer = u
+
+            return render(request, 'webapp/OrganizedEvents.html', {"organizer":organizer})
+
+        return redirect('webapp:landing')
+
+    def post(self, request):
+        if request.session.has_key('user'):
+            if request.method == 'POST':
+                if 'btnReviews' in request.POST:
+                    data = request.POST
+                    event_id = data.get("event_id")
+                    event = Event.objects.get(pk = event_id)
+                    return render(request, 'webapp/ReviewList.html', {"event":event})
+                elif 'btnParticipants' in request.POST:
+                    data = request.POST
+                    event_id = data.get("event_id")
+                    event = Event.objects.get(pk = event_id)
+                    return render(request, 'webapp/ParticipantsList.html', {"event":event})
+        return redirect('webapp/landing') 
+
+class MetroEventsOrganizerRequestsView(View):
+    def get(self, request):
+        if request.session.has_key('user'):
+            user_id = int(request.session['user']['id'])
+            user = User.objects.get(pk = user_id)
+
+            for u in user.user_organizer.all():
+                organizer = u
+
+            return render(request, 'webapp/OrganizerRequests.html', {"organizer":organizer})
+
+        return redirect('webapp:landing')
+
+    def post(self, request):
+        if request.session.has_key('user'):
+            if request.method == 'POST':
+                if 'btnAccept' in request.POST:
+                    request_id = request.POST.get("request_id")
+                    event_id = request.POST.get("event_id")
+
+                    request = EventRequest.objects.get(pk = request_id)
+                    user = User.objects.get(pk = request.sender.id)
+                    event = Event.objects.get(pk = event_id)
+
+                    req_type = request.request_type
+
+                    update = EventRequest.objects.filter(id = request_id).update(isConfirmed=True)
+                    update = EventRequest.objects.filter(id = request_id).update(isPending=False)
+
+                    event.participants.add(user)
+                    event.number_of_participants = event.number_of_participants + 1
+                    event.save()
+
+                    requestNotification(request_id, req_type)
+
+                    return redirect('webapp:organizer_requests')
+                elif 'btnDecline' in request.POST:
+                    request_id = request.POST.get("request_id")
+
+                    request = EventRequest.objects.get(pk = request_id)
+                    update = EventRequest.objects.filter(id = request_id).update(isPending=False)
+                    update = EventRequest.objects.filter(id = request_id).update(isConfirmed=False)
+
+                    req_type = request.request_type
+
+                    requestNotification(request_id, req_type)
+
+                    return redirect('webapp:organizer_requests')
+
+        return redirect('webapp/landing')    
+
+class MetroEventsNotificationsView(View):
+    def get(self, request):
+        if request.session.has_key('user'):
+            user_id = int(request.session['user']['id'])
+            user = User.objects.get(pk = user_id)
+
+            return render(request, 'webapp/AllNotifications.html', {"user": user})
+
+        return redirect('webapp:landing')
+
+    def post(self, request):
+        if request.session.has_key('user'):
+            if request.method == 'POST':
+                if 'btnDelete' in request.POST:
+                    form = EventCreationForm(request.POST)
+        return redirect('webapp/landing')  
+
+class MetroEventsUsersView(View):
+    def get(self, request):
+        if request.session.has_key('user'):
+            user_id = int(request.session['user']['id'])
+            user = User.objects.get(pk = user_id)
+
+            return render(request, 'webapp/UserEvents.html', {"user": user})
+
+        return redirect('webapp:landing')
+
+    def post(self, request):
+        if request.session.has_key('user'):
+            if request.method == 'POST':
+                if 'btnDelete' in request.POST:
+                    form = EventCreationForm(request.POST)
+        return redirect('webapp/landing') 

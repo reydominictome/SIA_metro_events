@@ -292,4 +292,8 @@ class MetroEventsAdministratorView(View):
 
 class MetroEventsOrganizerView(View):
     def get(self, request):
-        return render(request, 'webapp/Home.html')                
+        return render(request, 'webapp/Home.html')      
+    
+def logoutPage(request):
+        logout(request)
+        return redirect('webapp:landing')

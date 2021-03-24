@@ -11,4 +11,5 @@ urlpatterns = [
     path('events', views.MetroEventsEventsView.as_view(), name='events'),
     path('administrator', views.MetroEventsAdministratorView.as_view(), name='administrator'),
     path('organizer', views.MetroEventsOrganizerView.as_view(), name='organizer'),
+    path('logout', views.logoutPage, name="logout_view"),
 ]

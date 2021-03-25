@@ -24,9 +24,9 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 SECRET_KEY = 'ilp+l#4*!6x9%(3kdsh$q#8=(yvz!v^!*+36__oj8j+up(luyj'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -76,10 +76,10 @@ WSGI_APPLICATION = 'metro_events.wsgi.application'
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'metro_events.sqlite3',
-    }
+    #'default': {
+    #    'ENGINE': 'django.db.backends.sqlite3',
+    #    'NAME': BASE_DIR / 'metro_events.sqlite3',
+    #}
     #'default': {
     #    'ENGINE': 'django.db.backends.mysql',
     #    'NAME': 'metro_events',
@@ -91,17 +91,17 @@ DATABASES = {
     #    'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
     #    },
     #}
-    #'default': {
-    #    'ENGINE': 'django.db.backends.mysql',
-    #    'NAME': 'metro_events',
-    #    'USER': 'metro_event@metro-events-db',
-    #    'PASSWORD': '@Metev123',
-    #    'HOST': 'metro-events-db.mysql.database.azure.com',
-    #    'PORT': '3306',
-    #    'OPTIONS': {
-    #    'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-    #    },
-    #}
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'metro_events',
+        'USER': 'metro_events@metro-events-db',
+        'PASSWORD': '@Metev123',
+        'HOST': 'metro-events-db.mysql.database.azure.com',
+        'PORT': '3306',
+        'OPTIONS': {
+        'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
+    }
 }
 
 
